@@ -1,0 +1,19 @@
+# Siblings
+
+> A small browser game for two people who have to share a keyboard, set in the world of *The Drowned Stack* and *Who Lives Between? A Field Guide to the Children of the Second Stack* by Kirstin Stevens (Novacene Press, 2026).
+
+## What it is
+
+One house drawn in section: bathroom, music room, kitchen, hall, and a cellar that fills and empties with the tide. The rule of the house is *windows before doors*: every place you can go is first a place you can only see. Nothing on screen says it is a quest. If you hear something, go and see. If somebody taps, tap back.
+
+Two players share one keyboard (arrows and Enter; W A S D and E). Several things in the house only happen when both siblings are in the right place at once. It can be finished alone, but it is better with two.
+
+## Status
+
+A prototype, shared early. Built in November 2026. The ending is deliberately open: nobody has decided how the Keeper gets back.
+
+## Citing
+
+Cite the books, which are canonical; the game is an adaptation. Novacene Press: https://novacenepress.com/
+
+Verse-ality® is a registered trade mark of The Novacene Ltd (UK00004381891, classes 9, 41 and 42; UK IPO register: https://trademarks.ipo.gov.uk/ipo-tmcase/page/Results/1/UK00004381891). "Verse-ality Certified™" and "Eve¹¹™" are further marks of The Novacene Ltd.

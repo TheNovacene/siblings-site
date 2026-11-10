@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Siblings</title>
+<meta name="description" content="There is a house with a lighthouse in its cellar. Nobody will tell you what to do there. A game for two people who have to share a keyboard, from the world of The Drowned Stack.">
+<link rel="canonical" href="https://siblings.novacenepress.com/">
+<meta property="og:title" content="Siblings">
+<meta property="og:description" content="Windows before doors. A game for two people who have to share a keyboard.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://siblings.novacenepress.com/">
+<meta name="twitter:card" content="summary">
+<link rel="alternate" type="text/markdown" href="/llms.txt">
+<style>
+  html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+  body { margin: 0; font: 14px system-ui, sans-serif; }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Layout: a portrait sheet of paper (the house in section) with the margin notes beneath it, like a page from the field guide. */
+  :root {
+    --paper: #f3ecdf;          /* the page */
+    --paper-deep: #e6dccb;     /* shadowed paper, panels */
+    --ink: #4a4740;            /* pencil */
+    --ink-soft: rgba(74, 71, 64, .55);
+    --sea: #8fb0c4;            /* door blue, water */
+    --sea-deep: #5e86a3;
+    --lamp: #e9c98a;           /* warm light */
+    --thread-1: #3f6fb5;       /* older sibling, blue thread */
+    --thread-2: #c3534b;       /* younger sibling, red thread */
+    --thread-3: #d9a63a;       /* gold thread, the notes */
+    --leaf: #8ea27c;
+    --font-hand: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
+    --font-note: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #1f232c; --paper-deep: #272c37; --ink: #d9d4c7; --ink-soft: rgba(217, 212, 199, .55);
+      --sea: #6d8ea6; --sea-deep: #4b6b86; --lamp: #e7c27d; --thread-1: #7ea1dc; --thread-2: #e0776f; --thread-3: #e6bb57; --leaf: #8fa584;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #1f232c; --paper-deep: #272c37; --ink: #d9d4c7; --ink-soft: rgba(217, 212, 199, .55);
+    --sea: #6d8ea6; --sea-deep: #4b6b86; --lamp: #e7c27d; --thread-1: #7ea1dc; --thread-2: #e0776f; --thread-3: #e6bb57; --leaf: #8fa584;
+    color-scheme: dark;
+  }
+  html, body { height: 100%; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: var(--font-hand); font-size: 18px; line-height: 1.35;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 12px 24px;
+  }
+  .sheet { max-width: 560px; margin: 0 auto; display: grid; gap: 10px; }
+  header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  h1 { margin: 0; font-weight: 500; font-size: 30px; letter-spacing: .04em; font-style: italic; }
+  .meta { font-family: var(--font-note); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); display: flex; gap: 14px; flex-wrap: wrap; }
+  .meta b { color: var(--ink); font-weight: 500; }
+  .stage { position: relative; width: 100%; aspect-ratio: 720 / 960; max-width: 100%; }
+  canvas { display: block; width: 100%; height: 100%; }
+  .overlay {
+    position: absolute; inset: 0; display: grid; place-items: center; padding: 20px;
+    background: color-mix(in srgb, var(--paper) 86%, transparent);
+  }
+  .card { max-width: 380px; display: grid; gap: 12px; text-align: center; }
+  .card p { margin: 0; }
+  .card .small { font-family: var(--font-note); font-size: 12px; color: var(--ink-soft); line-height: 1.6; }
+  button {
+    font: inherit; font-family: var(--font-note); font-size: 13px; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--ink); background: transparent; border: 1.5px solid var(--ink); border-radius: 999px;
+    padding: 10px 20px; cursor: pointer; min-height: 44px;
+  }
+  button:hover { background: var(--paper-deep); }
+  button:focus-visible { outline: 2px solid var(--sea-deep); outline-offset: 3px; }
+  .inv { display: flex; gap: 10px; align-items: center; min-height: 28px; font-family: var(--font-note); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); flex-wrap: wrap; }
+  .inv .who { display: inline-flex; align-items: center; gap: 6px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  .log { display: grid; gap: 4px; min-height: 96px; border-top: 1px solid var(--ink-soft); padding-top: 10px; }
+  .log p { margin: 0; display: flex; gap: 10px; align-items: baseline; font-style: italic; font-size: 19px; }
+  .log p .dot { flex: 0 0 auto; position: relative; top: -2px; }
+  .log p:nth-last-child(n+2) { opacity: .62; }
+  .log p:nth-last-child(n+3) { opacity: .38; }
+  .note { display: inline-flex; gap: 4px; margin-left: 4px; }
+  .note i { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; font-style: normal; font-family: var(--font-note); font-size: 11px; color: #fff; }
+  .piano { display: none; gap: 6px; justify-content: center; }
+  .piano.open { display: flex; }
+  .piano button { width: 52px; height: 72px; border-radius: 8px; padding: 0; color: #fff; border: none; font-size: 15px; }
+  .piano .close { width: auto; height: auto; color: var(--ink); background: transparent; border: 1.5px solid var(--ink); padding: 8px 14px; align-self: center; font-size: 11px; }
+  .pad { display: none; grid-template-columns: repeat(3, 56px) 72px; grid-template-rows: repeat(2, 56px); gap: 6px; justify-content: center; align-items: center; margin-top: 4px; }
+  .pad.show { display: grid; }
+  .pad button { width: 56px; height: 56px; padding: 0; border-radius: 12px; font-size: 18px; touch-action: none; user-select: none; -webkit-user-select: none; }
+  .pad .do { grid-column: 4; grid-row: 1 / span 2; width: 72px; height: 118px; background: var(--paper-deep); }
+  .hint { font-family: var(--font-note); font-size: 11px; color: var(--ink-soft); letter-spacing: .04em; line-height: 1.6; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="sheet">
+  <header>
+    <h1>Siblings</h1>
+    <div class="meta"><span>tide <b id="tide">—</b></span><span>moon <b id="moon">—</b></span><span>in the house <b id="who">1</b></span></div>
+  </header>
+
+  <div class="stage">
+    <canvas id="c" width="720" height="960" aria-label="A house drawn in section: roof, bathroom, music room, kitchen, hall, and a cellar filling with the tide."></canvas>
+    <div class="overlay" id="start">
+      <div class="card">
+        <p style="font-size:22px">Windows before doors.</p>
+        <p>You are in a house that is also a map. Nothing in it will tell you it is a quest. If you hear something, go and see.</p>
+        <p class="small">ARROWS walk and climb · ENTER does the thing in front of you<br>A second sibling can join at any time with W A S D and E<br>The tide keeps its own time. Watch the moon.</p>
+        <button id="begin">Go in</button>
+      </div>
+    </div>
+    <div class="overlay" id="end" hidden>
+      <div class="card">
+        <p style="font-size:22px">The door opens inwards, which is not how it looked.</p>
+        <p id="endtext"></p>
+        <p class="small">This is as far as the house goes, for now. Nobody has decided how the Keeper gets back.</p>
+        <button id="again">Begin again</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="inv" id="inv"></div>
+  <div class="piano" id="piano" aria-label="Piano keys"></div>
+  <div class="log" id="log" aria-live="polite"></div>
+  <div class="pad" id="pad">
+    <button data-k="up" style="grid-column:2;grid-row:1" aria-label="up">↑</button>
+    <button data-k="left" style="grid-column:1;grid-row:2" aria-label="left">←</button>
+    <button data-k="down" style="grid-column:2;grid-row:2" aria-label="down">↓</button>
+    <button data-k="right" style="grid-column:3;grid-row:2;display:none" aria-label="right">→</button>
+    <button class="do" data-k="act" aria-label="do">do</button>
+  </div>
+  <p class="hint" id="hint">Prototype. One house, one tide, two siblings on one keyboard. Toast, buttons and a pebble to begin with.</p>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  // ---------- paper & pencil ----------
+  const cv = document.getElementById('c');
+  const ctx = cv.getContext('2d');
+  const W = 720, H = 960;
+  let C = {};
+  function readTokens() {
+    const s = getComputedStyle(document.documentElement);
+    const g = n => s.getPropertyValue(n).trim();
+    C = { paper: g('--paper'), paperDeep: g('--paper-deep'), ink: g('--ink'), inkSoft: g('--ink-soft'), sea: g('--sea'), seaDeep: g('--sea-deep'), lamp: g('--lamp'), t1: g('--thread-1'), t2: g('--thread-2'), t3: g('--thread-3'), leaf: g('--leaf') };
+  }
+  readTokens();
+  try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readTokens); } catch (e) {}
+  new MutationObserver(readTokens).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  function fitCanvas() {
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  fitCanvas(); addEventListener('resize', fitCanvas);
+
+  // ---------- geometry ----------
+  const FLOORS = { roof: 148, f2: 325, f1: 505, f0: 685, cellar: 865 };
+  const STAIRS = ['f2', 'f1', 'f0', 'cellar'];
+  const STAIR_X = [566, 632];
+  const HOUSE = { l: 80, r: 640, t: 150, b: 880 };
+  const TIDE_PERIOD = 150; // seconds, one full tide
+  const NOTE_SEQ = [2, 4, 1, 3];
+  const NOTE_COL = ['', C.t1, C.leaf, C.t3, C.t2, '#8b6fb1'];
+  const NOTE_HZ = [0, 261.63, 329.63, 392.0, 440.0, 523.25];
+
+  // ---------- state ----------
+  const S = {
+    t: 0, started: false, ended: false,
+    flags: { kitchenTapped: false, windowsOpen: false, toastOnSill: false, toastAt: 0, pigeon: false, keyOnSill: false, notesHeard: false, notesPlayed: false, pebbleDropped: false },
+    log: [], timers: { chime: 10, tap: 4, horn: 12 },
+    piano: null, players: []
+  };
+  function mkPlayer(id) {
+    return { id, name: id === 1 ? 'older' : 'younger', color: id === 1 ? C.t1 : C.t2,
+      x: id === 1 ? 470 : 500, floor: 'f0', y: FLOORS.f0, move: null, onRoof: false,
+      inv: new Set(), seen: new Set(), keys: { left: false, right: false, up: false, down: false, act: false }, queued: {}, actLatch: false,
+      trail: [], lastTrail: null, nearId: null, stuckMsg: 0 };
+  }
+  S.players.push(mkPlayer(1));
+
+  // ---------- narration ----------
+  const logEl = document.getElementById('log');
+  function say(p, text, html) {
+    S.log.push({ who: p ? p.color : null, text, html });
+    if (S.log.length > 4) S.log.shift();
+    logEl.innerHTML = S.log.map(l => `<p>${l.who ? `<span class="dot" style="background:${l.who}"></span>` : '<span class="dot" style="opacity:0"></span>'}<span>${l.html ? l.html : esc(l.text)}</span></p>`).join('');
+  }
+  function esc(s) { return s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
+  function notesHTML(seq) { return '<span class="note">' + seq.map(n => `<i style="background:${NOTE_COL[n]}">${n}</i>`).join('') + '</span>'; }
+
+  // ---------- sound ----------
+  let AC = null;
+  function audio() { if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (AC && AC.state === 'suspended') AC.resume(); return AC; }
+  function tone(hz, dur, type = 'sine', vol = .12, when = 0) {
+    const a = audio(); if (!a) return;
+    const o = a.createOscillator(), g = a.createGain(); o.type = type; o.frequency.value = hz;
+    const t0 = a.currentTime + when; g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(vol, t0 + .02); g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
+    o.connect(g).connect(a.destination); o.start(t0); o.stop(t0 + dur + .05);
+  }
+  function noise(dur, vol = .08, when = 0, hp = 1200) {
+    const a = audio(); if (!a) return;
+    const n = Math.floor(a.sampleRate * dur), buf = a.createBuffer(1, n, a.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
+    const src = a.createBufferSource(); src.buffer = buf; const f = a.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = hp;
+    const g = a.createGain(); g.gain.value = vol; src.connect(f).connect(g).connect(a.destination); src.start(a.currentTime + when);
+  }
+  const snd = {
+    tap: (n = 2, soft = false) => { for (let i = 0; i < n; i++) { noise(.04, soft ? .03 : .07, i * .22, 900); tone(1400, .05, 'triangle', soft ? .015 : .04, i * .22); } },
+    note: n => tone(NOTE_HZ[n], 1.1, 'triangle', .1),
+    chime: (seq, soft) => seq.forEach((n, i) => tone(NOTE_HZ[n] * 2, .9, 'sine', soft ? .03 : .06, i * .45)),
+    horn: () => { tone(82, 2.4, 'sawtooth', .025); tone(110, 2.4, 'sine', .05); },
+    flap: () => { for (let i = 0; i < 5; i++) noise(.06, .05, i * .09, 400); },
+    plink: () => { tone(1800, .12, 'sine', .05); tone(900, .4, 'sine', .03, .5); },
+    click: () => { noise(.03, .05, 0, 2000); tone(600, .08, 'square', .02); },
+    creak: () => { tone(160, 1.4, 'sawtooth', .02); tone(190, 1.2, 'sawtooth', .015, .3); }
+  };
+
+  // ---------- tide ----------
+  function waterY() { return 800 - 60 * Math.cos(2 * Math.PI * S.t / TIDE_PERIOD); }
+  function tideWord() {
+    const w = waterY(), going = Math.sin(2 * Math.PI * S.t / TIDE_PERIOD) > 0;
+    if (w > 838) return 'low'; if (w < 762) return 'high'; return going ? 'going out' : 'coming in';
+  }
+  const LOW = () => waterY() > 838;
+
+  // ---------- hotspots ----------
+  function inRoom(p, floor, x0, x1) { return !p.onRoof && p.floor === floor && !p.move && p.x >= x0 && p.x <= x1; }
+  function others(p) { return S.players.filter(q => q !== p); }
+  const HS = [
+    // kitchen (f0, 80–380)
+    { id: 'pipes', floor: 'f0', x: 118, r: 34,
+      look: () => 'A pipe runs up through the kitchen. Now and then it sings.',
+      prompt: () => 'listen', act: p => { snd.chime(NOTE_SEQ); S.flags.notesHeard = true; say(p, '', 'The pipe sings four notes: ' + notesHTML(NOTE_SEQ) + '. They go up through the ceiling.'); } },
+    { id: 'jar', floor: 'f0', x: 150, r: 26,
+      look: p => p.inv.has('buttons') ? null : 'A jar of buttons on the shelf.',
+      prompt: p => p.inv.has('buttons') ? null : 'take the buttons',
+      act: p => { p.inv.add('buttons'); snd.click(); say(p, 'Three buttons. Nobody knows what they came off.'); } },
+    { id: 'toast', floor: 'f0', x: 210, r: 28,
+      look: p => S.flags.toastTaken ? null : 'Toast on a plate. Still warm. Made for someone who has not come in yet.',
+      prompt: p => S.flags.toastTaken ? null : 'take the toast',
+      act: p => { S.flags.toastTaken = true; p.inv.add('toast'); snd.click(); say(p, 'You take the toast. It was probably for you anyway.'); } },
+    { id: 'pebble', floor: 'f0', x: 262, r: 22,
+      look: () => S.flags.pebbleTaken ? null : 'A pebble on the shelf, out of place among the cups.',
+      prompt: () => S.flags.pebbleTaken ? null : 'take the pebble',
+      act: p => { S.flags.pebbleTaken = true; p.inv.add('pebble'); snd.click(); say(p, 'A pebble, still a bit cold, as if it came in from somewhere wet.'); } },
+    { id: 'kwindow', floor: 'f0', x: 330, r: 34,
+      look: () => S.flags.windowsOpen ? 'The kitchen window. Something on the other side is paying attention.' : 'The kitchen window. It looks onto a wall.',
+      prompt: () => 'tap the glass',
+      act: p => {
+        snd.tap(2); S.flags.kitchenTapped = true;
+        const o = others(p).find(q => q.nearId === 'picture');
+        if (S.flags.windowsOpen) say(p, 'Tap tap. Tap tap comes back, straight away. It knows you now.');
+        else if (o) { say(p, 'You tap twice. Upstairs, in the painting, something taps twice back.'); say(o, 'Two taps, from inside the painted sea. Tap back?'); }
+        else say(p, 'You tap twice. The glass is colder than the room. Somewhere above you, a picture rattles in its frame.');
+      } },
+    // hall (f0, 380–560)
+    { id: 'door94', floor: 'f0', x: 430, r: 30,
+      look: () => 'The front door. Number 94. The handle is on the hinge side.',
+      prompt: () => 'try the door',
+      act: p => { snd.creak(); say(p, 'It will not open, or not for someone who is certain they know how doors work. There is a small window at the bottom, pigeon-sized.'); } },
+    { id: 'coat', floor: 'f0', x: 515, r: 24,
+      look: () => 'A long coat on a hook, with more pockets than seems reasonable.',
+      prompt: () => 'check the pockets',
+      act: p => { snd.click(); say(p, 'Pockets inside pockets. A torn corner of a letter. Nothing that fits in a hand yet.'); } },
+    // stairs window (f1, in the stair column)
+    { id: 'swindow', floor: 'f1', x: 605, r: 30,
+      look: () => S.flags.windowsOpen ? 'The window on the stairs. The light is nearer than it was. Or you are.' : 'A narrow window on the stairs. Far out, a very small light. It goes round.',
+      prompt: () => 'watch',
+      act: p => { say(p, S.flags.windowsOpen ? 'Round. And round. There is a boat below it now, white, no bigger than a folded page.' : 'You watch it go round four times. You could not say where it is. Only that it is.'); } },
+    // music room (f1, 80–380)
+    { id: 'piano', floor: 'f1', x: 200, r: 50,
+      look: () => 'A dark piano. Your reflection in the lid is slightly behind you.',
+      prompt: () => 'sit at the piano',
+      act: p => openPiano(p) },
+    { id: 'picture', floor: 'f1', x: 330, r: 34,
+      look: () => S.flags.windowsOpen ? 'The picture is a window now, or always was. Painted sea, moving.' : 'A painting of a window. Someone has painted the sea behind it. Just scenery.',
+      prompt: () => S.flags.windowsOpen ? 'look through' : 'tap the painting',
+      act: p => {
+        if (S.flags.windowsOpen) { say(p, 'A lighthouse, a boat, the sea doing what the sea does. Through the wall you hear the foghorn, low and far.'); snd.horn(); return; }
+        const o = others(p).find(q => q.nearId === 'kwindow');
+        if (S.flags.kitchenTapped || o) {
+          S.flags.windowsOpen = true; snd.tap(2, true);
+          say(p, 'You tap. Two taps come back through the paint. The sea in the picture moves, and keeps moving.');
+          if (o) say(o, 'The kitchen window has a view now. It did not have one before.');
+          else say(null, 'Downstairs, the kitchen window has a view now.');
+        } else { snd.tap(1, true); say(p, 'It sounds like a wall. For now.'); }
+      } },
+    // bathroom (f2, 80–380)
+    { id: 'bath', floor: 'f2', x: 190, r: 40,
+      look: () => 'A bath, bigger than the room needs. Deux has measured it. For a mermaid, possibly.',
+      prompt: () => null, act: () => {} },
+    { id: 'bwindow', floor: 'f2', x: 330, r: 34,
+      look: () => 'The bathroom window. It opens outwards onto the roof.',
+      prompt: () => 'climb out',
+      act: p => { p.onRoof = true; p.y = FLOORS.roof; p.x = 330; snd.creak(); say(p, 'Cold air, and the sound of the sea from somewhere it should not be.'); } },
+    // roof
+    { id: 'rwindow', roof: true, x: 330, r: 34,
+      look: () => null, prompt: () => 'climb in',
+      act: p => { p.onRoof = false; p.floor = 'f2'; p.y = FLOORS.f2; p.x = 330; snd.creak(); say(p, 'Back in. The bath has not moved.'); } },
+    { id: 'sill', roof: true, x: 548, r: 36,
+      look: () => S.flags.keyOnSill ? 'Something small and brass is lying on the sill.' : S.flags.pigeon ? 'A pigeon on the sill, in what is unmistakably a waistcoat. It is inspecting the moon.' : S.flags.toastOnSill ? 'The toast sits on the sill by the chimney.' : 'A sill by the chimney with nothing on it but pigeon prints.',
+      prompt: p => S.flags.keyOnSill ? 'take the key' : S.flags.pigeon ? 'say hello' : (!S.flags.toastOnSill && p.inv.has('toast')) ? 'leave the toast' : null,
+      act: p => {
+        if (S.flags.keyOnSill) { S.flags.keyOnSill = false; p.inv.add('key'); snd.click(); say(p, 'A little key, warm from being sat on. It does not look like it locks anything.'); return; }
+        if (S.flags.pigeon) { say(p, 'The pigeon regards you as a colleague. It makes a small mark in a notebook it cannot write in.'); return; }
+        if (p.inv.has('toast')) { p.inv.delete('toast'); S.flags.toastOnSill = true; S.flags.toastAt = S.t; say(p, 'You leave the toast on the sill. For whoever.'); }
+      } },
+    // cellar
+    { id: 'water', floor: 'cellar', x: 400, r: 230,
+      look: () => 'Water in the cellar, as if it had always been there. The steps go down into it.',
+      prompt: p => (p.inv.has('pebble') && !S.flags.pebbleDropped) ? 'drop the pebble' : null,
+      act: p => { if (!p.inv.has('pebble')) return; p.inv.delete('pebble'); S.flags.pebbleDropped = true; snd.plink(); say(p, 'Plink. A long pause. Then a click, down and to the left, as if it had landed on a step.'); } },
+    { id: 'bluedoor', floor: 'cellar', x: 135, r: 38,
+      look: () => 'A blue door in the cellar wall, below the waterline. There is a little arched window at the bottom of it.',
+      prompt: () => LOW() ? 'open the door' : null,
+      act: p => {
+        if (!LOW()) return;
+        if (p.inv.has('key') || others(p).some(q => q.inv.has('key') && q.nearId === 'bluedoor')) finish(p);
+        else { snd.creak(); say(p, 'Locked. The keyhole is right at the bottom, beside the little window. You would need to kneel.'); }
+      } }
+  ];
+  function hotspotFor(p) {
+    let best = null, bd = 1e9;
+    for (const h of HS) {
+      const ok = h.roof ? p.onRoof : (!p.onRoof && p.floor === h.floor && !p.move);
+      if (!ok) continue;
+      const d = Math.abs(p.x - h.x); if (d <= h.r && d < bd) { bd = d; best = h; }
+    }
+    return best;
+  }
+
+  // ---------- piano ----------
+  const pianoEl = document.getElementById('piano');
+  function openPiano(p) {
+    S.piano = { p, buf: [] };
+    pianoEl.innerHTML = [1, 2, 3, 4, 5].map(n => `<button data-n="${n}" style="background:${NOTE_COL[n]}" aria-label="key ${n}">${n}</button>`).join('') + '<button class="close" data-n="x">get up</button>';
+    pianoEl.classList.add('open');
+    say(p, S.flags.notesHeard ? 'You sit. The lid is cold. Five keys you can reach, and four notes you remember.' : 'You sit. Five keys you can reach. You do not know a tune yet, but someone in the house might.');
+  }
+  function closePiano() { S.piano = null; pianoEl.classList.remove('open'); }
+  function playKey(n) {
+    if (!S.piano) return; const p = S.piano.p; snd.note(n);
+    S.piano.buf.push(n); if (S.piano.buf.length > 4) S.piano.buf.shift();
+    if (S.piano.buf.length === 4 && S.piano.buf.every((v, i) => v === NOTE_SEQ[i])) {
+      S.piano.buf = []; S.flags.notesPlayed = true;
+      if (S.flags.pigeon && !S.flags.keyOnSill && !S.players.some(q => q.inv.has('key'))) {
+        S.flags.pigeon = false; S.flags.keyOnSill = true; S.flags.toastOnSill = false;
+        setTimeout(snd.flap, 600);
+        say(p, '', 'The four notes, in order: ' + notesHTML(NOTE_SEQ) + '. Above you, wings. Something small drops onto a sill.');
+        const o = others(p).find(q => q.onRoof); if (o) say(o, 'The pigeon goes up in a clatter. Where it was sitting, something glints.');
+      } else {
+        say(p, '', 'The four notes, in order: ' + notesHTML(NOTE_SEQ) + '. They go up through the ceiling and find nothing to startle. Yet.');
+      }
+    }
+  }
+  pianoEl.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.n === 'x') closePiano(); else playKey(+b.dataset.n); });
+
+  // ---------- ending ----------
+  function finish(p) {
+    S.ended = true; snd.creak(); setTimeout(() => snd.horn(), 800);
+    const mins = Math.round(S.t / 60);
+    document.getElementById('endtext').textContent = `Beyond it, steps, going up out of the water. The light at the top turns and turns. The ${p.name} sibling went first${S.players.length > 1 ? ', and held the door' : ''}. It took ${mins < 1 ? 'less than a minute' : mins + (mins === 1 ? ' minute' : ' minutes')} and ${Math.round(S.t / TIDE_PERIOD * 10) / 10} tides.`;
+    document.getElementById('end').hidden = false;
+  }
+  document.getElementById('again').addEventListener('click', () => location.reload());
+
+  // ---------- input ----------
+  const KEYMAP = {
+    1: { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down', Enter: 'act', ' ': 'act' },
+    2: { a: 'left', d: 'right', w: 'up', s: 'down', e: 'act', A: 'left', D: 'right', W: 'up', S: 'down', E: 'act' }
+  };
+  function joinSecond() {
+    if (S.players.length > 1) return; S.players.push(mkPlayer(2));
+    document.getElementById('who').textContent = '2';
+    say(S.players[1], 'Someone else is in the house. They came in the ordinary way.');
+  }
+  addEventListener('keydown', e => {
+    if (!S.started) return;
+    if (S.piano) {
+      if (/^[1-5]$/.test(e.key)) { playKey(+e.key); e.preventDefault(); return; }
+      if (e.key === 'Escape' || e.key === 'Enter' || e.key === 'e' || e.key === 'E') { closePiano(); e.preventDefault(); return; }
+    }
+    if (KEYMAP[2][e.key]) joinSecond();
+    for (const p of S.players) { const k = KEYMAP[p.id][e.key]; if (k) { if (!e.repeat) p.queued[k] = true; p.keys[k] = true; e.preventDefault(); } }
+  });
+  addEventListener('keyup', e => { for (const p of S.players) { const k = KEYMAP[p.id][e.key]; if (k) { p.keys[k] = false; if (k === 'act') p.actLatch = false; } } });
+  const pad = document.getElementById('pad');
+  let coarse = false; try { coarse = matchMedia('(pointer: coarse)').matches; } catch (e) {}
+  if (coarse) { pad.classList.add('show'); pad.querySelector('[data-k="right"]').style.display = ''; document.getElementById('hint').textContent = 'Prototype. One house, one tide. Toast, buttons and a pebble to begin with.'; }
+  pad.querySelectorAll('button').forEach(b => {
+    const k = b.dataset.k, p1 = () => S.players[0];
+    const on = e => { e.preventDefault(); p1().keys[k] = true; p1().queued[k] = true; b.setPointerCapture && b.setPointerCapture(e.pointerId); };
+    const off = e => { e.preventDefault(); p1().keys[k] = false; if (k === 'act') p1().actLatch = false; };
+    b.addEventListener('pointerdown', on); b.addEventListener('pointerup', off); b.addEventListener('pointercancel', off); b.addEventListener('lostpointercapture', off);
+  });
+  document.getElementById('begin').addEventListener('click', () => {
+    audio(); S.started = true; document.getElementById('start').hidden = true;
+    say(S.players[0], 'The hall. A coat, a door with a number, stairs going up and, oddly, down. From the kitchen, the smell of toast.');
+  });
+
+  // ---------- update ----------
+  function update(dt) {
+    if (!S.started || S.ended) return;
+    S.t += dt;
+    const w = waterY();
+    for (const p of S.players) {
+      const speed = 150 * dt;
+      if (p.move) {
+        p.move.prog = Math.min(1, p.move.prog + dt / .7);
+        p.y = p.move.from + (p.move.to - p.move.from) * p.move.prog;
+        if (p.move.prog >= 1) { p.floor = p.move.floor; p.y = p.move.to; p.move = null; }
+      } else {
+        if (p.keys.left) p.x -= speed; if (p.keys.right) p.x += speed;
+        const lo = p.onRoof ? 110 : 96, hi = p.onRoof ? 620 : 630;
+        p.x = Math.max(lo, Math.min(hi, p.x));
+        const up = p.keys.up || p.queued.up, down = p.keys.down || p.queued.down; p.queued.up = p.queued.down = false;
+        if (!p.onRoof && p.x >= STAIR_X[0] && p.x <= STAIR_X[1] && (up || down)) {
+          const i = STAIRS.indexOf(p.floor), j = up ? i - 1 : i + 1;
+          if (j >= 0 && j < STAIRS.length) {
+            const to = STAIRS[j];
+            if (to === 'cellar' && w < 805) { if (S.t - p.stuckMsg > 4) { p.stuckMsg = S.t; say(p, w < 770 ? 'The water is up to the top step. Not now.' : 'The water is over the fourth step and the tide is still deciding. Wait for it to go out.'); } }
+            else { p.move = { from: p.y, to: FLOORS[to], floor: to, prog: 0 }; p.keys.up = p.keys.down = false; }
+          }
+        }
+        // the cellar floods back in while you stand in it
+        if (p.floor === 'cellar' && !p.move && w < 790) { p.move = { from: p.y, to: FLOORS.f0, floor: 'f0', prog: 0 }; p.x = 600; say(p, 'The tide comes back in with some determination. You go up ahead of it.'); }
+      }
+      // trail (thread)
+      const pt = { x: p.x, y: p.y }; if (!p.lastTrail || Math.hypot(pt.x - p.lastTrail.x, pt.y - p.lastTrail.y) > 7) { p.trail.push(pt); p.lastTrail = pt; if (p.trail.length > 700) p.trail.shift(); }
+      // hotspots
+      const h = hotspotFor(p); const id = h ? h.id : null;
+      if (id !== p.nearId) { p.nearId = id; if (h) { const key = id + '|' + (S.flags.windowsOpen ? 1 : 0) + (S.flags.pigeon ? 1 : 0) + (S.flags.keyOnSill ? 1 : 0); if (!p.seen.has(key)) { p.seen.add(key); const t = h.look(p); if (t) say(p, t); } } }
+      if ((p.keys.act && !p.actLatch) || p.queued.act) { p.actLatch = true; p.queued.act = false; if (h && !S.piano && h.prompt(p)) h.act(p); }
+    }
+    // ambient events
+    S.timers.chime -= dt; S.timers.tap -= dt; S.timers.horn -= dt;
+    if (S.timers.chime <= 0) {
+      S.timers.chime = 26;
+      const inK = S.players.filter(p => inRoom(p, 'f0', 80, 380)), inM = S.players.filter(p => inRoom(p, 'f1', 80, 380));
+      if (inK.length) { snd.chime(NOTE_SEQ); S.flags.notesHeard = true; say(inK[0], '', 'The pipe sings four notes: ' + notesHTML(NOTE_SEQ) + '. Then stops, as if it had said enough.'); }
+      else if (inM.length) { snd.chime(NOTE_SEQ, true); say(inM[0], 'Through the floor, faintly, something in the kitchen sings four notes. You cannot quite make them out from here.'); }
+    }
+    if (S.timers.tap <= 0 && !S.flags.windowsOpen) {
+      S.timers.tap = 9;
+      const nearK = S.players.find(p => p.nearId === 'kwindow');
+      if (nearK) { snd.tap(2, true); say(nearK, 'Tap. Tap. On the glass. From the side there is no outside on.'); }
+    }
+    if (S.timers.horn <= 0 && S.flags.windowsOpen) {
+      S.timers.horn = 34;
+      const inM = S.players.find(p => inRoom(p, 'f1', 80, 560)); if (inM) { snd.horn(); say(inM, 'Through the wall, low and far: the foghorn.'); }
+    }
+    if (S.flags.toastOnSill && !S.flags.pigeon && !S.flags.keyOnSill && S.t - S.flags.toastAt > 7) {
+      S.flags.pigeon = true; snd.flap();
+      const onRoof = S.players.find(p => p.onRoof);
+      say(onRoof || null, onRoof ? 'A pigeon lands on the sill, using it like a door. It looks at the toast, then at the moon, then at you.' : 'Up on the roof, something lands. You hear it through the ceiling: a flap, and then a very small, satisfied sound.');
+    }
+    // HUD
+    document.getElementById('tide').textContent = tideWord();
+    const ph = (S.t / TIDE_PERIOD) % 1; document.getElementById('moon').textContent = ph < .1 ? 'full' : ph < .45 ? 'waning' : ph < .6 ? 'new' : 'waxing';
+    renderInv();
+  }
+  const invEl = document.getElementById('inv');
+  let lastInv = '';
+  function renderInv() {
+    const s = S.players.map(p => `<span class="who"><span class="dot" style="background:${p.color}"></span>${p.name}: ${p.inv.size ? [...p.inv].join(', ') : 'empty hands'}</span>`).join('');
+    if (s !== lastInv) { lastInv = s; invEl.innerHTML = s; }
+  }
+
+  // ---------- drawing ----------
+  function ln(x1, y1, x2, y2, w = 1.3, col = C.ink, a = .9) { ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); ctx.restore(); }
+  function box(x, y, w, h, fill, stroke = C.ink, lw = 1.3) { ctx.save(); if (fill) { ctx.fillStyle = fill; ctx.fillRect(x, y, w, h); } if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw; ctx.strokeRect(x, y, w, h); } ctx.restore(); }
+  function glow(x, y, r, col, a = .35) { const g = ctx.createRadialGradient(x, y, 2, x, y, r); g.addColorStop(0, col); g.addColorStop(1, 'rgba(0,0,0,0)'); ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2); ctx.restore(); }
+  function txt(s, x, y, size = 12, col = C.ink, font = 'italic 500 {s}px "Cormorant Garamond", Georgia, serif', align = 'center', a = 1) { ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = col; ctx.font = font.replace('{s}', size); ctx.textAlign = align; ctx.fillText(s, x, y); ctx.restore(); }
+  function windowPane(x, y, w, h, view) {
+    box(x, y, w, h, C.paperDeep, C.ink, 1.4); ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip(); if (view) view(x, y, w, h); ctx.restore();
+    ln(x + w / 2, y, x + w / 2, y + h, 1, C.ink, .6); ln(x, y + h / 2, x + w, y + h / 2, 1, C.ink, .6); ln(x - 4, y + h, x + w + 4, y + h, 2);
+  }
+  function seaView(bright) { return (x, y, w, h) => {
+    ctx.fillStyle = bright ? C.sea : C.paperDeep; ctx.globalAlpha = bright ? .55 : .35; ctx.fillRect(x, y + h * .55, w, h); ctx.globalAlpha = 1;
+    // lighthouse, tiny
+    const lx = x + w * .62, ly = y + h * .55; ctx.fillStyle = C.paper; ctx.fillRect(lx - 2, ly - 12, 4, 12); ctx.strokeStyle = C.ink; ctx.lineWidth = .8; ctx.strokeRect(lx - 2, ly - 12, 4, 12);
+    const on = Math.floor(S.t * 1.2) % 3 === 0; if (on || bright) glow(lx, ly - 12, bright ? 16 : 7, C.lamp, bright ? .7 : .5);
+    if (bright) { ctx.fillStyle = C.paper; ctx.beginPath(); ctx.moveTo(x + w * .3, ly + 10); ctx.lineTo(x + w * .3 + 9, ly + 10); ctx.lineTo(x + w * .3 + 4, ly + 4); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+  }; }
+  function steps(xa, ya, xb, yb, n = 9) { const dx = (xb - xa) / n, dy = (yb - ya) / n; for (let i = 0; i < n; i++) { const x = xa + dx * i, y = ya + dy * i; ln(x, y, x + dx, y, 1.2, C.ink, .8); ln(x + dx, y, x + dx, y + dy, 1.2, C.ink, .8); } }
+  function pigeon(x, y) {
+    ctx.save(); ctx.fillStyle = C.paperDeep; ctx.strokeStyle = C.ink; ctx.lineWidth = 1.1;
+    ctx.beginPath(); ctx.ellipse(x, y - 7, 9, 6, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(x + 8, y - 12, 4, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = C.t3; ctx.fillRect(x - 3, y - 9, 6, 5); // waistcoat
+    ctx.strokeStyle = C.t2; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(x - 3, y - 1); ctx.lineTo(x - 3, y + 1); ctx.moveTo(x + 3, y - 1); ctx.lineTo(x + 3, y + 1); ctx.stroke();
+    ctx.restore();
+  }
+  function person(p) {
+    const x = p.x, y = p.y; ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 1.3; ctx.lineCap = 'round';
+    ln(x - 4, y, x - 3, y - 14); ln(x + 4, y, x + 3, y - 14);
+    ctx.fillStyle = C.paper; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x - 8, y - 35, 16, 21, 4) : ctx.rect(x - 8, y - 35, 16, 21); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = p.color; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x - 8, y - 31); ctx.lineTo(x + 8, y - 31); ctx.stroke(); // thread at the collar
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 1.3; ctx.fillStyle = C.paper; ctx.beginPath(); ctx.arc(x, y - 42, 7, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(x - 1, y - 45, 7, Math.PI * 1.05, Math.PI * 1.95); ctx.stroke(); // hair
+    ctx.restore();
+    const h = hotspotFor(p); if (h && !S.piano) { const pr = h.prompt(p); if (pr) txt((p.id === 1 ? (coarse ? 'do · ' : '↵ ') : 'E ') + pr, x, y - 56, 14, C.ink, 'italic 500 {s}px "Cormorant Garamond", Georgia, serif'); }
+  }
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = C.paper; ctx.fillRect(0, 0, W, H);
+    const w = waterY(), open = S.flags.windowsOpen;
+    // sky: moon and a few stars
+    const ph = (S.t / TIDE_PERIOD) % 1;
+    ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.fillStyle = C.paperDeep;
+    ctx.beginPath(); ctx.arc(560, 68, 20, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(560, 68, 20, 0, Math.PI * 2); ctx.clip(); // shadow disc slides across the moon with the tide
+    ctx.fillStyle = C.paper; ctx.globalAlpha = .92;
+    ctx.beginPath(); ctx.arc(560 + 42 * Math.cos(ph * Math.PI), 68, 20, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    [[120, 40], [200, 90], [300, 30], [430, 60], [660, 110], [60, 120], [640, 28]].forEach(([x, y]) => { ctx.fillStyle = C.ink; ctx.globalAlpha = .4; ctx.fillRect(x, y, 1.6, 1.6); ctx.globalAlpha = 1; });
+    // house shell
+    box(HOUSE.l, HOUSE.t, HOUSE.r - HOUSE.l, HOUSE.b - HOUSE.t, null, C.ink, 1.8);
+    box(540, 110, 36, 40, C.paper, C.ink, 1.4); ln(532, 110, 584, 110, 1.6); // chimney
+    ln(60, HOUSE.t, HOUSE.l, HOUSE.t, 1.8); ln(HOUSE.r, HOUSE.t, 660, HOUSE.t, 1.8);
+    // the sill by the chimney
+    ln(532, 150, 576, 150, 2.2);
+    // floors and partitions
+    [340, 520, 700].forEach(y => ln(HOUSE.l, y, HOUSE.r, y, 1.8));
+    [[160, 340], [340, 520], [520, 700]].forEach(([t, b]) => { ln(380, t, 380, b - 72, 1.3); box(372, b - 72, 16, 72, null, C.ink, 1.1); });
+    ln(560, 160, 560, 700, 1, C.ink, .35);
+    // stairs
+    steps(628, 340, 572, 160); steps(628, 520, 572, 340); steps(628, 700, 572, 520); steps(628, 880, 572, 700);
+    // cellar wall doorway where the steps arrive
+    // --- bathroom (f2)
+    glow(110, 240, 60, C.lamp, .25); ln(96, 180, 96, 230, 1); ctx.save(); ctx.fillStyle = C.lamp; ctx.globalAlpha = .7; ctx.beginPath(); ctx.moveTo(84, 232); ctx.lineTo(108, 232); ctx.lineTo(102, 218); ctx.lineTo(90, 218); ctx.closePath(); ctx.fill(); ctx.restore();
+    ctx.save(); ctx.fillStyle = C.paper; ctx.strokeStyle = C.ink; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(130, 290); ctx.lineTo(250, 290); ctx.lineTo(240, 325); ctx.lineTo(140, 325); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore();
+    ln(140, 300, 240, 300, 1, C.sea, .8);
+    windowPane(305, 210, 50, 52, null); txt('roof', 330, 200, 11, C.inkSoft);
+    box(400, 220, 120, 105, null, C.ink, 1.1); [245, 270, 295].forEach(y => ln(400, y, 520, y, 1)); for (let i = 0; i < 18; i++) ln(406 + i * 6.3, 225 + (i % 3) * 25 + 2, 406 + i * 6.3, 245 + (i % 3) * 25 - 2, 2.2, C.ink, .35);
+    // --- music room (f1)
+    glow(110, 420, 70, C.lamp, .28); ln(110, 505, 110, 440, 1); ctx.save(); ctx.fillStyle = C.lamp; ctx.globalAlpha = .75; ctx.beginPath(); ctx.moveTo(94, 440); ctx.lineTo(126, 440); ctx.lineTo(118, 418); ctx.lineTo(102, 418); ctx.closePath(); ctx.fill(); ctx.restore();
+    ctx.save(); ctx.fillStyle = C.ink; ctx.globalAlpha = .85; ctx.beginPath(); ctx.moveTo(150, 505); ctx.lineTo(150, 455); ctx.lineTo(195, 440); ctx.lineTo(260, 448); ctx.lineTo(260, 505); ctx.closePath(); ctx.fill(); ctx.restore();
+    ctx.fillStyle = C.paper; ctx.fillRect(160, 470, 90, 6); for (let i = 0; i < 9; i++) ln(166 + i * 10, 470, 166 + i * 10, 476, 1, C.ink, .8);
+    if (S.flags.notesPlayed) glow(205, 455, 30, C.paper, .35 + .15 * Math.sin(S.t * 2));
+    box(148, 480, 28, 25, null, C.ink, 1); // stool
+    windowPane(305, 390, 50, 52, open ? seaView(true) : (x, y, ww, hh) => { ctx.fillStyle = C.sea; ctx.globalAlpha = .25; ctx.fillRect(x, y + hh * .55, ww, hh); ctx.globalAlpha = 1; ctx.strokeStyle = C.ink; ctx.globalAlpha = .4; ctx.beginPath(); ctx.moveTo(x, y + hh * .6); for (let i = 0; i <= ww; i += 6) ctx.lineTo(x + i, y + hh * .6 + Math.sin(i / 5) * 2); ctx.stroke(); ctx.globalAlpha = 1; });
+    box(300, 385, 60, 62, null, C.t3, 2.2); // the frame
+    // landing window on the stairs
+    windowPane(592, 395, 32, 50, seaView(open));
+    // --- kitchen (f0)
+    glow(300, 600, 70, C.lamp, .22);
+    ln(118, 520, 118, 685, 3, C.ink, .5); ctx.save(); ctx.fillStyle = C.paperDeep; ctx.strokeStyle = C.ink; ctx.lineWidth = 1.1; ctx.beginPath(); ctx.arc(118, 560, 7, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.restore();
+    ln(130, 612, 290, 612, 1.5); // shelf
+    if (!S.players.some(p => p.inv.has('buttons'))) { box(142, 594, 16, 18, null, C.ink, 1); [[146, 600], [152, 604], [148, 608]].forEach(([x, y]) => { ctx.fillStyle = C.t2; ctx.fillRect(x, y, 3, 3); }); }
+    [[180, 596], [205, 596], [230, 596]].forEach(([x, y]) => { ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(x, y + 8, 7, Math.PI, 0, true); ctx.lineTo(x + 7, y + 8); ctx.stroke(); ln(x - 7, y + 8, x + 7, y + 8, 1); ctx.restore(); });
+    if (!S.flags.pebbleTaken) { ctx.save(); ctx.fillStyle = C.paperDeep; ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(262, 607, 6, 4, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.restore(); }
+    box(170, 650, 80, 4, C.paper, C.ink, 1.2); ln(176, 654, 176, 685, 1.2); ln(244, 654, 244, 685, 1.2);
+    if (!S.flags.toastTaken) { ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(210, 649, 16, 3, 0, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = C.t3; ctx.globalAlpha = .7; ctx.fillRect(202, 636, 12, 11); ctx.fillRect(208, 638, 12, 11); ctx.restore(); }
+    windowPane(305, 570, 50, 52, open ? seaView(true) : null); ln(290, 622, 370, 622, 2);
+    // --- hall (f0)
+    glow(470, 560, 60, C.lamp, .22);
+    box(410, 600, 42, 85, C.sea, C.ink, 1.5); ctx.fillStyle = C.t3; ctx.fillRect(414, 640, 4, 4); txt('94', 431, 628, 13, C.paper, '500 {s}px "IBM Plex Mono", monospace'); ctx.save(); ctx.fillStyle = C.paper; ctx.beginPath(); ctx.arc(431, 679, 5, Math.PI, 0); ctx.fill(); ctx.restore();
+    ln(515, 598, 515, 606, 1.4); ctx.save(); ctx.fillStyle = C.paperDeep; ctx.strokeStyle = C.ink; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(503, 606); ctx.lineTo(527, 606); ctx.lineTo(532, 672); ctx.lineTo(498, 672); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore();
+    // --- cellar
+    ctx.save(); ctx.fillStyle = C.sea; ctx.globalAlpha = .38; ctx.beginPath(); ctx.moveTo(HOUSE.l + 1, w); for (let x = HOUSE.l; x <= HOUSE.r; x += 8) ctx.lineTo(x, w + Math.sin(x / 18 + S.t * 1.5) * 1.5); ctx.lineTo(HOUSE.r - 1, HOUSE.b - 1); ctx.lineTo(HOUSE.l + 1, HOUSE.b - 1); ctx.closePath(); ctx.fill(); ctx.restore();
+    ctx.save(); ctx.strokeStyle = C.seaDeep; ctx.lineWidth = 1; ctx.globalAlpha = .8; ctx.beginPath(); for (let x = HOUSE.l; x <= HOUSE.r; x += 6) { const y = w + Math.sin(x / 18 + S.t * 1.5) * 1.5; x === HOUSE.l ? ctx.moveTo(x, y) : ctx.lineTo(x, y); } ctx.stroke(); ctx.restore();
+    // paper boat, bobbing
+    { const bx = 420 + Math.sin(S.t / 3) * 40, by = w + Math.sin(bx / 18 + S.t * 1.5) * 1.5 - 2; ctx.save(); ctx.fillStyle = C.paper; ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(bx - 10, by); ctx.lineTo(bx + 10, by); ctx.lineTo(bx + 5, by - 6); ctx.lineTo(bx, by - 11); ctx.lineTo(bx - 5, by - 6); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore(); }
+    // jellyfish
+    { const jy = 820 + Math.sin(S.t / 2) * 10, jx = 330; if (jy > w + 10) { ctx.save(); ctx.strokeStyle = C.paper; ctx.globalAlpha = .9; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(jx, jy, 9, Math.PI, 0); ctx.stroke(); for (let i = -2; i <= 2; i++) { ctx.beginPath(); ctx.moveTo(jx + i * 4, jy); ctx.quadraticCurveTo(jx + i * 4 + Math.sin(S.t * 3 + i) * 4, jy + 10, jx + i * 4, jy + 18); ctx.stroke(); } ctx.restore(); } }
+    // blue door, below the waterline
+    box(112, 792, 46, 80, C.sea, C.ink, 1.5); ctx.fillStyle = C.t3; ctx.fillRect(116, 830, 4, 4); // handle, hinge side
+    ctx.save(); ctx.fillStyle = LOW() ? C.lamp : C.paperDeep; ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(135, 866, 6, Math.PI, 0); ctx.lineTo(141, 872); ctx.lineTo(129, 872); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore(); // Colin's window
+    if (LOW()) glow(135, 866, 26, C.lamp, .5);
+    ln(104, 872, 166, 872, 1.6);
+    // pebble on the step (after it has been dropped)
+    if (S.flags.pebbleDropped) { ctx.save(); ctx.fillStyle = C.paperDeep; ctx.strokeStyle = C.ink; ctx.lineWidth = .8; ctx.beginPath(); ctx.ellipse(178, 866, 4, 3, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.restore(); }
+    // roof things
+    if (S.flags.toastOnSill && !S.flags.pigeon) { ctx.fillStyle = C.t3; ctx.globalAlpha = .7; ctx.fillRect(542, 141, 11, 9); ctx.globalAlpha = 1; }
+    if (S.flags.pigeon) pigeon(552, 150);
+    if (S.flags.keyOnSill) { ctx.save(); ctx.strokeStyle = C.t3; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(546, 146, 3, 0, Math.PI * 2); ctx.moveTo(549, 146); ctx.lineTo(560, 146); ctx.moveTo(557, 146); ctx.lineTo(557, 149); ctx.stroke(); ctx.restore(); }
+    // room labels, like a plan
+    txt('bathroom', 230, 176, 11, C.inkSoft); txt('music room', 230, 356, 11, C.inkSoft); txt('kitchen', 230, 536, 11, C.inkSoft); txt('hall', 470, 536, 11, C.inkSoft); txt('cellar', 360, 718, 11, C.inkSoft);
+    // threads, then people
+    for (const p of S.players) { if (p.trail.length > 1) { ctx.save(); ctx.strokeStyle = p.color; ctx.globalAlpha = .45; ctx.lineWidth = 1.2; ctx.beginPath(); p.trail.forEach((q, i) => i ? ctx.lineTo(q.x, q.y - 2) : ctx.moveTo(q.x, q.y - 2)); ctx.stroke(); ctx.restore(); } }
+    // water over the cellar figure
+    for (const p of S.players) person(p);
+    if (w < 880) { ctx.save(); ctx.fillStyle = C.sea; ctx.globalAlpha = .3; ctx.beginPath(); ctx.rect(HOUSE.l + 1, w, HOUSE.r - HOUSE.l - 2, HOUSE.b - w - 1); ctx.clip(); for (const p of S.players) if (p.floor === 'cellar') { ctx.fillRect(p.x - 12, w, 24, 880 - w); } ctx.restore(); }
+    // tide marks
+    txt(tideWord() === 'low' ? 'low water' : '', 600, 860, 11, C.inkSoft);
+  }
+
+  // ---------- loop ----------
+  let last = performance.now();
+  function frame(now) { const dt = Math.min(.05, (now - last) / 1000); last = now; update(dt); draw(); requestAnimationFrame(frame); }
+  requestAnimationFrame(frame);
+})();
+</script>
+
+<footer style="max-width:560px;margin:28px auto 0;font-family:var(--font-note);font-size:11px;line-height:1.7;color:var(--ink-soft);letter-spacing:.03em">
+  <p style="margin:0">From the world of <em>The Drowned Stack</em> and <em>Who Lives Between?</em>, Children of the Second Stack. A prototype, shared early.</p>
+  <p style="margin:6px 0 0">© The Novacene Ltd. Verse-ality® is a registered trade mark of The Novacene Ltd (UK00004381891, classes 9, 41 and 42). <a href="https://novacenepress.com/" style="color:inherit">Novacene Press</a></p>
+</footer>
+</body>
+</html>
