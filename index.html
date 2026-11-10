@@ -56,8 +56,23 @@
     padding-right: max(16px, env(safe-area-inset-right, 0px));
     padding-block: 12px 24px;
   }
-  .sheet { max-width: 560px; margin: 0 auto; display: grid; gap: 10px; }
-  header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .sheet { max-width: 560px; margin: 0 auto; display: grid; gap: 10px; grid-template-areas: "head" "stage" "side"; }
+  header { grid-area: head; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .stage { grid-area: stage; }
+  .side { grid-area: side; display: grid; gap: 10px; align-content: start; min-width: 0; }
+  /* Wide screens: the house stands full height on the left, the margin notes sit beside it. */
+  @media (min-width: 900px) {
+    .sheet { max-width: 1180px; grid-template-columns: minmax(0, max-content) minmax(260px, 1fr); grid-template-areas: "head head" "stage side"; column-gap: 32px; align-items: start; }
+    .stage { height: min(calc(100dvh - 104px), calc((100vw - 360px) * 1.3333), 980px); width: auto; }
+    .side { position: sticky; top: 12px; gap: 14px; }
+    .side .log { order: 1; border-top: none; padding-top: 0; min-height: 0; }
+    .side .inv { order: 2; border-top: 1px solid var(--ink-soft); padding-top: 10px; }
+    .side .piano { order: 3; }
+    .side .pad { order: 4; }
+    .side .hint { order: 5; }
+    .log p { font-size: 21px; }
+  }
+  @media (max-width: 899px) { .log p:nth-last-child(n+5) { display: none; } }
   h1 { margin: 0; font-weight: 500; font-size: 30px; letter-spacing: .04em; font-style: italic; }
   .meta { font-family: var(--font-note); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); display: flex; gap: 14px; flex-wrap: wrap; }
   .meta b { color: var(--ink); font-weight: 500; }
@@ -83,11 +98,12 @@
   .log { display: grid; gap: 4px; min-height: 96px; border-top: 1px solid var(--ink-soft); padding-top: 10px; }
   .log p { margin: 0; display: flex; gap: 10px; align-items: baseline; font-style: italic; font-size: 19px; }
   .log p .dot { flex: 0 0 auto; position: relative; top: -2px; }
-  .log p:nth-last-child(n+2) { opacity: .62; }
-  .log p:nth-last-child(n+3) { opacity: .38; }
+  .log p:nth-last-child(n+2) { opacity: .66; }
+  .log p:nth-last-child(n+3) { opacity: .48; }
+  .log p:nth-last-child(n+5) { opacity: .3; }
   .note { display: inline-flex; gap: 4px; margin-left: 4px; }
   .note i { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; font-style: normal; font-family: var(--font-note); font-size: 11px; color: #fff; }
-  .piano { display: none; gap: 6px; justify-content: center; }
+  .piano { display: none; gap: 6px; justify-content: center; flex-wrap: wrap; }
   .piano.open { display: flex; }
   .piano button { width: 52px; height: 72px; border-radius: 8px; padding: 0; color: #fff; border: none; font-size: 15px; }
   .piano .close { width: auto; height: auto; color: var(--ink); background: transparent; border: 1.5px solid var(--ink); padding: 8px 14px; align-self: center; font-size: 11px; }
@@ -125,6 +141,7 @@
     </div>
   </div>
 
+  <aside class="side">
   <div class="inv" id="inv"></div>
   <div class="piano" id="piano" aria-label="Piano keys"></div>
   <div class="log" id="log" aria-live="polite"></div>
@@ -136,6 +153,7 @@
     <button class="do" data-k="act" aria-label="do">do</button>
   </div>
   <p class="hint" id="hint">Prototype. One house, one tide, two siblings on one keyboard. Toast, buttons and a pebble to begin with.</p>
+  </aside>
 </div>
 
 <script>
@@ -189,7 +207,7 @@
   const logEl = document.getElementById('log');
   function say(p, text, html) {
     S.log.push({ who: p ? p.color : null, text, html });
-    if (S.log.length > 4) S.log.shift();
+    if (S.log.length > 7) S.log.shift();
     logEl.innerHTML = S.log.map(l => `<p>${l.who ? `<span class="dot" style="background:${l.who}"></span>` : '<span class="dot" style="opacity:0"></span>'}<span>${l.html ? l.html : esc(l.text)}</span></p>`).join('');
   }
   function esc(s) { return s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
